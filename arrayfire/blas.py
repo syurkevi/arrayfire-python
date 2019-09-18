@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+
 #######################################################
-# Copyright (c) 2015, ArrayFire
+# Copyright (c) 2019, ArrayFire
 # All rights reserved.
 #
 # This file is distributed under 3-clause BSD license.
@@ -11,8 +13,10 @@
 BLAS functions (matmul, dot, etc)
 """
 
-from .library import *
-from .array import *
+from .array import Array
+from .defaults import MATPROP, c_double_t, c_pointer
+from .library import backend, safe_call
+
 
 def matmul(lhs, rhs, lhs_opts=MATPROP.NONE, rhs_opts=MATPROP.NONE):
     """
@@ -53,9 +57,10 @@ def matmul(lhs, rhs, lhs_opts=MATPROP.NONE, rhs_opts=MATPROP.NONE):
 
     """
     out = Array()
-    safe_call(backend.get().af_matmul(c_pointer(out.arr), lhs.arr, rhs.arr,
-                                      lhs_opts.value, rhs_opts.value))
+    safe_call(backend.get().af_matmul(
+        c_pointer(out.arr), lhs.arr, rhs.arr, lhs_opts.value, rhs_opts.value))
     return out
+
 
 def matmulTN(lhs, rhs):
     """
@@ -84,9 +89,10 @@ def matmulTN(lhs, rhs):
 
     """
     out = Array()
-    safe_call(backend.get().af_matmul(c_pointer(out.arr), lhs.arr, rhs.arr,
-                                      MATPROP.TRANS.value, MATPROP.NONE.value))
+    safe_call(backend.get().af_matmul(
+        c_pointer(out.arr), lhs.arr, rhs.arr, MATPROP.TRANS.value, MATPROP.NONE.value))
     return out
+
 
 def matmulNT(lhs, rhs):
     """
@@ -115,9 +121,10 @@ def matmulNT(lhs, rhs):
 
     """
     out = Array()
-    safe_call(backend.get().af_matmul(c_pointer(out.arr), lhs.arr, rhs.arr,
-                                      MATPROP.NONE.value, MATPROP.TRANS.value))
+    safe_call(backend.get().af_matmul(
+        c_pointer(out.arr), lhs.arr, rhs.arr, MATPROP.NONE.value, MATPROP.TRANS.value))
     return out
+
 
 def matmulTT(lhs, rhs):
     """
@@ -146,11 +153,12 @@ def matmulTT(lhs, rhs):
 
     """
     out = Array()
-    safe_call(backend.get().af_matmul(c_pointer(out.arr), lhs.arr, rhs.arr,
-                                      MATPROP.TRANS.value, MATPROP.TRANS.value))
+    safe_call(backend.get().af_matmul(
+        c_pointer(out.arr), lhs.arr, rhs.arr, MATPROP.TRANS.value, MATPROP.TRANS.value))
     return out
 
-def dot(lhs, rhs, lhs_opts=MATPROP.NONE, rhs_opts=MATPROP.NONE, return_scalar = False):
+
+def dot(lhs, rhs, lhs_opts=MATPROP.NONE, rhs_opts=MATPROP.NONE, return_scalar=False):
     """
     Dot product of two input vectors.
 
@@ -192,13 +200,12 @@ def dot(lhs, rhs, lhs_opts=MATPROP.NONE, rhs_opts=MATPROP.NONE, return_scalar = 
     if return_scalar:
         real = c_double_t(0)
         imag = c_double_t(0)
-        safe_call(backend.get().af_dot_all(c_pointer(real), c_pointer(imag),
-                                           lhs.arr, rhs.arr, lhs_opts.value, rhs_opts.value))
+        safe_call(backend.get().af_dot_all(
+            c_pointer(real), c_pointer(imag), lhs.arr, rhs.arr, lhs_opts.value, rhs_opts.value))
         real = real.value
         imag = imag.value
         return real if imag == 0 else real + imag * 1j
-    else:
-        out = Array()
-        safe_call(backend.get().af_dot(c_pointer(out.arr), lhs.arr, rhs.arr,
-                                       lhs_opts.value, rhs_opts.value))
-        return out
+
+    out = Array()
+    safe_call(backend.get().af_dot(c_pointer(out.arr), lhs.arr, rhs.arr, lhs_opts.value, rhs_opts.value))
+    return out

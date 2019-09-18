@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+
 #######################################################
-# Copyright (c) 2015, ArrayFire
+# Copyright (c) 2019, ArrayFire
 # All rights reserved.
 #
 # This file is distributed under 3-clause BSD license.
@@ -11,68 +13,10 @@
 Vector algorithms (sum, min, sort, etc).
 """
 
-from .library import *
-from .array import *
+from .array import Array, _nan_parallel_dim, _nan_reduce_all, _parallel_dim, _reduce_all
+from .defaults import BINARYOP, c_bool_t, c_double_t, c_int_t, c_pointer, c_uint_t
+from .library import backend, safe_call
 
-def _parallel_dim(a, dim, c_func):
-    out = Array()
-    safe_call(c_func(c_pointer(out.arr), a.arr, c_int_t(dim)))
-    return out
-
-def _reduce_all(a, c_func):
-    real = c_double_t(0)
-    imag = c_double_t(0)
-
-    safe_call(c_func(c_pointer(real), c_pointer(imag), a.arr))
-
-    real = real.value
-    imag = imag.value
-    return real if imag == 0 else real + imag * 1j
-
-def _nan_parallel_dim(a, dim, c_func, nan_val):
-    out = Array()
-    safe_call(c_func(c_pointer(out.arr), a.arr, c_int_t(dim), c_double_t(nan_val)))
-    return out
-
-def _nan_reduce_all(a, c_func, nan_val):
-    real = c_double_t(0)
-    imag = c_double_t(0)
-
-    safe_call(c_func(c_pointer(real), c_pointer(imag), a.arr, c_double_t(nan_val)))
-
-    real = real.value
-    imag = imag.value
-    return real if imag == 0 else real + imag * 1j
-
-def sum(a, dim=None, nan_val=None):
-    """
-    Calculate the sum of all the elements along a specified dimension.
-
-    Parameters
-    ----------
-    a  : af.Array
-         Multi dimensional arrayfire array.
-    dim: optional: int. default: None
-         Dimension along which the sum is required.
-    nan_val: optional: scalar. default: None
-         The value that replaces NaN in the array
-
-    Returns
-    -------
-    out: af.Array or scalar number
-         The sum of all elements in `a` along dimension `dim`.
-         If `dim` is `None`, sum of the entire Array is returned.
-    """
-    if (nan_val is not None):
-        if dim is not None:
-            return _nan_parallel_dim(a, dim, backend.get().af_sum_nan, nan_val)
-        else:
-            return _nan_reduce_all(a, backend.get().af_sum_nan_all, nan_val)
-    else:
-        if dim is not None:
-            return _parallel_dim(a, dim, backend.get().af_sum)
-        else:
-            return _reduce_all(a, backend.get().af_sum_all)
 
 def product(a, dim=None, nan_val=None):
     """
@@ -93,16 +37,15 @@ def product(a, dim=None, nan_val=None):
          The product of all elements in `a` along dimension `dim`.
          If `dim` is `None`, product of the entire Array is returned.
     """
-    if (nan_val is not None):
+    if nan_val is not None:
         if dim is not None:
             return _nan_parallel_dim(a, dim, backend.get().af_product_nan, nan_val)
-        else:
-            return _nan_reduce_all(a, backend.get().af_product_nan_all, nan_val)
-    else:
-        if dim is not None:
-            return _parallel_dim(a, dim, backend.get().af_product)
-        else:
-            return _reduce_all(a, backend.get().af_product_all)
+        return _nan_reduce_all(a, backend.get().af_product_nan_all, nan_val)
+
+    if dim is not None:
+        return _parallel_dim(a, dim, backend.get().af_product)
+    return _reduce_all(a, backend.get().af_product_all)
+
 
 def min(a, dim=None):
     """
@@ -123,8 +66,8 @@ def min(a, dim=None):
     """
     if dim is not None:
         return _parallel_dim(a, dim, backend.get().af_min)
-    else:
-        return _reduce_all(a, backend.get().af_min_all)
+    return _reduce_all(a, backend.get().af_min_all)
+
 
 def max(a, dim=None):
     """
@@ -145,8 +88,8 @@ def max(a, dim=None):
     """
     if dim is not None:
         return _parallel_dim(a, dim, backend.get().af_max)
-    else:
-        return _reduce_all(a, backend.get().af_max_all)
+    return _reduce_all(a, backend.get().af_max_all)
+
 
 def all_true(a, dim=None):
     """
@@ -167,8 +110,8 @@ def all_true(a, dim=None):
     """
     if dim is not None:
         return _parallel_dim(a, dim, backend.get().af_all_true)
-    else:
-        return _reduce_all(a, backend.get().af_all_true_all)
+    return _reduce_all(a, backend.get().af_all_true_all)
+
 
 def any_true(a, dim=None):
     """
@@ -189,30 +132,8 @@ def any_true(a, dim=None):
     """
     if dim is not None:
         return _parallel_dim(a, dim, backend.get().af_any_true)
-    else:
-        return _reduce_all(a, backend.get().af_any_true_all)
+    return _reduce_all(a, backend.get().af_any_true_all)
 
-def count(a, dim=None):
-    """
-    Count the number of non zero elements in an array along a specified dimension.
-
-    Parameters
-    ----------
-    a  : af.Array
-         Multi dimensional arrayfire array.
-    dim: optional: int. default: None
-         Dimension along which the the non zero elements are to be counted.
-
-    Returns
-    -------
-    out: af.Array or scalar number
-         The count of non zero elements in `a` along `dim`.
-         If `dim` is `None`, the total number of non zero elements in `a`.
-    """
-    if dim is not None:
-        return _parallel_dim(a, dim, backend.get().af_count)
-    else:
-        return _reduce_all(a, backend.get().af_count_all)
 
 def imin(a, dim=None):
     """
@@ -236,16 +157,17 @@ def imin(a, dim=None):
         out = Array()
         idx = Array()
         safe_call(backend.get().af_imin(c_pointer(out.arr), c_pointer(idx.arr), a.arr, c_int_t(dim)))
-        return out,idx
-    else:
-        real = c_double_t(0)
-        imag = c_double_t(0)
-        idx  = c_uint_t(0)
-        safe_call(backend.get().af_imin_all(c_pointer(real), c_pointer(imag), c_pointer(idx), a.arr))
-        real = real.value
-        imag = imag.value
-        val = real if imag == 0 else real + imag * 1j
-        return val,idx.value
+        return out, idx
+
+    real = c_double_t(0)
+    imag = c_double_t(0)
+    idx = c_uint_t(0)
+    safe_call(backend.get().af_imin_all(c_pointer(real), c_pointer(imag), c_pointer(idx), a.arr))
+    real = real.value
+    imag = imag.value
+    val = real if imag == 0 else real + imag * 1j
+    return val, idx.value
+
 
 def imax(a, dim=None):
     """
@@ -269,16 +191,16 @@ def imax(a, dim=None):
         out = Array()
         idx = Array()
         safe_call(backend.get().af_imax(c_pointer(out.arr), c_pointer(idx.arr), a.arr, c_int_t(dim)))
-        return out,idx
-    else:
-        real = c_double_t(0)
-        imag = c_double_t(0)
-        idx  = c_uint_t(0)
-        safe_call(backend.get().af_imax_all(c_pointer(real), c_pointer(imag), c_pointer(idx), a.arr))
-        real = real.value
-        imag = imag.value
-        val = real if imag == 0 else real + imag * 1j
-        return val,idx.value
+        return out, idx
+
+    real = c_double_t(0)
+    imag = c_double_t(0)
+    idx = c_uint_t(0)
+    safe_call(backend.get().af_imax_all(c_pointer(real), c_pointer(imag), c_pointer(idx), a.arr))
+    real = real.value
+    imag = imag.value
+    val = real if imag == 0 else real + imag * 1j
+    return val, idx.value
 
 
 def accum(a, dim=0):
@@ -298,6 +220,7 @@ def accum(a, dim=0):
          array of same size as `a` containing the cumulative sum along `dim`.
     """
     return _parallel_dim(a, dim, backend.get().af_accum)
+
 
 def scan(a, dim=0, op=BINARYOP.ADD, inclusive_scan=True):
     """
@@ -329,6 +252,7 @@ def scan(a, dim=0, op=BINARYOP.ADD, inclusive_scan=True):
     out = Array()
     safe_call(backend.get().af_scan(c_pointer(out.arr), a.arr, dim, op.value, inclusive_scan))
     return out
+
 
 def scan_by_key(key, a, dim=0, op=BINARYOP.ADD, inclusive_scan=True):
     """
@@ -364,6 +288,7 @@ def scan_by_key(key, a, dim=0, op=BINARYOP.ADD, inclusive_scan=True):
     safe_call(backend.get().af_scan_by_key(c_pointer(out.arr), key.arr, a.arr, dim, op.value, inclusive_scan))
     return out
 
+
 def where(a):
     """
     Find the indices of non zero elements
@@ -381,6 +306,7 @@ def where(a):
     out = Array()
     safe_call(backend.get().af_where(c_pointer(out.arr), a.arr))
     return out
+
 
 def diff1(a, dim=0):
     """
@@ -400,6 +326,7 @@ def diff1(a, dim=0):
     """
     return _parallel_dim(a, dim, backend.get().af_diff1)
 
+
 def diff2(a, dim=0):
     """
     Find the second order differences along specified dimensions
@@ -417,6 +344,7 @@ def diff2(a, dim=0):
          Array whose length along `dim` is 2 less than that of `a`.
     """
     return _parallel_dim(a, dim, backend.get().af_diff2)
+
 
 def sort(a, dim=0, is_ascending=True):
     """
@@ -444,6 +372,7 @@ def sort(a, dim=0, is_ascending=True):
     safe_call(backend.get().af_sort(c_pointer(out.arr), a.arr, c_uint_t(dim), c_bool_t(is_ascending)))
     return out
 
+
 def sort_index(a, dim=0, is_ascending=True):
     """
     Sort the array along a specified dimension and get the indices.
@@ -469,9 +398,10 @@ def sort_index(a, dim=0, is_ascending=True):
     """
     out = Array()
     idx = Array()
-    safe_call(backend.get().af_sort_index(c_pointer(out.arr), c_pointer(idx.arr), a.arr,
-                                          c_uint_t(dim), c_bool_t(is_ascending)))
-    return out,idx
+    safe_call(backend.get().af_sort_index(
+        c_pointer(out.arr), c_pointer(idx.arr), a.arr, c_uint_t(dim), c_bool_t(is_ascending)))
+    return out, idx
+
 
 def sort_by_key(ik, iv, dim=0, is_ascending=True):
     """
@@ -500,9 +430,10 @@ def sort_by_key(ik, iv, dim=0, is_ascending=True):
     """
     ov = Array()
     ok = Array()
-    safe_call(backend.get().af_sort_by_key(c_pointer(ok.arr), c_pointer(ov.arr),
-                                           ik.arr, iv.arr, c_uint_t(dim), c_bool_t(is_ascending)))
-    return ov,ok
+    safe_call(backend.get().af_sort_by_key(
+        c_pointer(ok.arr), c_pointer(ov.arr), ik.arr, iv.arr, c_uint_t(dim), c_bool_t(is_ascending)))
+    return ov, ok
+
 
 def set_unique(a, is_sorted=False):
     """
@@ -523,6 +454,7 @@ def set_unique(a, is_sorted=False):
     out = Array()
     safe_call(backend.get().af_set_unique(c_pointer(out.arr), a.arr, c_bool_t(is_sorted)))
     return out
+
 
 def set_union(a, b, is_unique=False):
     """
@@ -545,6 +477,7 @@ def set_union(a, b, is_unique=False):
     out = Array()
     safe_call(backend.get().af_set_union(c_pointer(out.arr), a.arr, b.arr, c_bool_t(is_unique)))
     return out
+
 
 def set_intersect(a, b, is_unique=False):
     """

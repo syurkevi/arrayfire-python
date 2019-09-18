@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #######################################################
-# Copyright (c) 2015, ArrayFire
+# Copyright (c) 2019, ArrayFire
 # All rights reserved.
 #
 # This file is distributed under 3-clause BSD license.
@@ -9,6 +9,6 @@
 # http://arrayfire.com/licenses/BSD-3-Clause
 ########################################################
 
-version = "3.5"
-release = "20170718"
+version = "3.6"
+release = "20181017"
 full_version = version + "." + release
