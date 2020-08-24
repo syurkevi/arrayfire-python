@@ -507,20 +507,3 @@ def free_pinned(ptr):
     cptr = c_void_ptr_t(ptr)
     safe_call(backend.get().af_free_pinned(cptr))
 
-
-def get_version():
-    """
-    Function to get the version of arrayfire.
-    """
-    major = c_int_t(0)
-    minor = c_int_t(0)
-    patch = c_int_t(0)
-    safe_call(backend.get().af_get_version(c_pointer(major), c_pointer(minor), c_pointer(patch)))
-    return major.value, minor.value, patch.value
-
-
-def get_reversion():
-    """
-    Function to get the revision hash of the library.
-    """
-    return to_str(backend.get().af_get_revision())

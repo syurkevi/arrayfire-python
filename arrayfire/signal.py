@@ -14,7 +14,7 @@ Signal processing functions (fft, convolve, etc).
 from .array import Array
 from .bcast import broadcast
 from .library import backend, safe_call, CONV_DOMAIN, CONV_MODE, INTERP, PAD, c_dim_t, c_double_t, c_float_t, c_pointer, c_size_t
-from .util import dim4_to_tuple
+from .util import dim4, dim4_to_tuple
 
 
 @broadcast
@@ -72,7 +72,6 @@ def approx1(signal, x, method=INTERP.LINEAR, off_grid=0.0, xp = None, output = N
     The initial measurements are assumed to have taken place at equal steps between [0, N - 1],
     where N is the length of the first dimension of `signal`.
     """
-<<<<<<< HEAD
 
     if output is None:
         output = Array()
@@ -85,12 +84,6 @@ def approx1(signal, x, method=INTERP.LINEAR, off_grid=0.0, xp = None, output = N
         safe_call(backend.get().af_approx1(c_pointer(output.arr), signal.arr, pos0.arr,
                                            method.value, c_float_t(off_grid)))
 
-=======
-    output = Array()
-
-    if xp is not None:
-        pos0 = _scale_pos_axis0(x, xp)
->>>>>>> b8cfb147b502131d9fbd74078e8fc90d02168ba0
     else:
         if(xp is not None):
             pos0 = _scale_pos_axis0(x, xp)

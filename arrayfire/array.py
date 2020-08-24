@@ -263,6 +263,7 @@ def _get_indices(key):
 
 
 def _get_assign_dims(key, idims):
+    from .algorithm import sum
     dims = [1]*4
 
     for n, _ in enumerate(idims):
@@ -535,6 +536,7 @@ class Array(BaseArray):
         ----------
         ty : Return data type
         """
+        from .arith import cast
         return cast(self, ty)
 
     def copy(self):
@@ -1142,6 +1144,7 @@ class Array(BaseArray):
         Ellipsis not supported as key
         """
         try:
+            from .algorithm import count
             out = Array()
             n_dims = self.numdims()
 
@@ -1166,6 +1169,7 @@ class Array(BaseArray):
         Ellipsis not supported as key
         """
         try:
+            from .algorithm import count
             n_dims = self.numdims()
 
             is_boolean_idx = isinstance(key, Array) and key.type() == Dtype.b8.value
@@ -1488,117 +1492,3 @@ def read_array(filename, index=None, key=None):
     return out
 
 
-def _parallel_dim(a, dim, c_func):
-    out = Array()
-    safe_call(c_func(c_pointer(out.arr), a.arr, c_int_t(dim)))
-    return out
-
-
-def _reduce_all(a, c_func):
-    real = c_double_t(0)
-    imag = c_double_t(0)
-
-    safe_call(c_func(c_pointer(real), c_pointer(imag), a.arr))
-
-    real = real.value
-    imag = imag.value
-    return real if imag == 0 else real + imag * 1j
-
-
-def _nan_parallel_dim(a, dim, c_func, nan_val):
-    out = Array()
-    safe_call(c_func(c_pointer(out.arr), a.arr, c_int_t(dim), c_double_t(nan_val)))
-    return out
-
-
-def _nan_reduce_all(a, c_func, nan_val):
-    real = c_double_t(0)
-    imag = c_double_t(0)
-
-    safe_call(c_func(c_pointer(real), c_pointer(imag), a.arr, c_double_t(nan_val)))
-
-    real = real.value
-    imag = imag.value
-    return real if imag == 0 else real + imag * 1j
-
-
-def count(a, dim=None):
-    """
-    Count the number of non zero elements in an array along a specified dimension.
-
-    Parameters
-    ----------
-    a  : af.Array
-         Multi dimensional arrayfire array.
-    dim: optional: int. default: None
-         Dimension along which the the non zero elements are to be counted.
-
-    Returns
-    -------
-    out: af.Array or scalar number
-         The count of non zero elements in `a` along `dim`.
-         If `dim` is `None`, the total number of non zero elements in `a`.
-    """
-    if dim is not None:
-        return _parallel_dim(a, dim, backend.get().af_count)
-
-    return _reduce_all(a, backend.get().af_count_all)
-
-
-def sum(a, dim=None, nan_val=None):
-    """
-    Calculate the sum of all the elements along a specified dimension.
-
-    Parameters
-    ----------
-    a  : af.Array
-         Multi dimensional arrayfire array.
-    dim: optional: int. default: None
-         Dimension along which the sum is required.
-    nan_val: optional: scalar. default: None
-         The value that replaces NaN in the array
-
-    Returns
-    -------
-    out: af.Array or scalar number
-         The sum of all elements in `a` along dimension `dim`.
-         If `dim` is `None`, sum of the entire Array is returned.
-    """
-    if nan_val is not None:
-        if dim is not None:
-            return _nan_parallel_dim(a, dim, backend.get().af_sum_nan, nan_val)
-        return _nan_reduce_all(a, backend.get().af_sum_nan_all, nan_val)
-
-    if dim is not None:
-        return _parallel_dim(a, dim, backend.get().af_sum)
-    return _reduce_all(a, backend.get().af_sum_all)
-
-
-def cast(a, dtype):
-    """
-    Cast an array to a specified type
-
-    Parameters
-    ----------
-    a    : af.Array
-           Multi dimensional arrayfire array.
-    dtype: af.Dtype
-           Must be one of the following:
-               - Dtype.f32 for float
-               - Dtype.f64 for double
-               - Dtype.b8  for bool
-               - Dtype.u8  for unsigned char
-               - Dtype.s32 for signed 32 bit integer
-               - Dtype.u32 for unsigned 32 bit integer
-               - Dtype.s64 for signed 64 bit integer
-               - Dtype.u64 for unsigned 64 bit integer
-               - Dtype.c32 for 32 bit complex number
-               - Dtype.c64 for 64 bit complex number
-    Returns
-    --------
-    out  : af.Array
-           array containing the values from `a` after converting to `dtype`.
-    """
-    out = Array()
-    safe_call(backend.get().af_cast(c_pointer(out.arr), a.arr, dtype.value))
-    return out

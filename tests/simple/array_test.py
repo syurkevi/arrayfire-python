@@ -26,7 +26,7 @@ def simple_array(verbose=False):
     display_func(a.H)
     print_func(a.shape)
 
-    b = a.as_type(af.defaults.Dtype.s32)
+    b = a.as_type(af.Dtype.s32)
     display_func(b)
 
     print_func(a.elements(), a.type(), a.dims(), a.numdims())

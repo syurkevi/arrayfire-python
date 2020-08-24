@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 #######################################################
 # Copyright (c) 2019, ArrayFire
 # All rights reserved.
@@ -14,7 +12,7 @@ Functions to create and manipulate arrays.
 """
 
 from .array import Array, constant_array
-from .library import backend, safe_call, Dtype, c_double_t, c_int_t, c_pointer, c_void_ptr_t
+from .library import backend, safe_call, Dtype, c_double_t, c_int_t, c_pointer, c_void_ptr_t, PAD
 from .util import _is_number, dim4
 
 

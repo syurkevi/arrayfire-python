@@ -16,7 +16,7 @@ import os
 from .array import Array
 from .data import constant
 from .library import (
-    CANNY_THRESHOLD, CONNECTIVITY, DIFFUSION, FLUX, INTERP, MOMENT, PAD, YCC_STD, Dtype, c_bool_t, c_char_ptr_t,
+    CANNY_THRESHOLD, CONNECTIVITY, DIFFUSION, FLUX, INTERP, ITERATIVE_DECONV, MOMENT, PAD, YCC_STD, Dtype, c_bool_t, c_char_ptr_t,
     c_dim_t, c_double_t, c_float_t, c_int_t, c_pointer, c_uint_t)
 from .library import backend, safe_call
 

@@ -11,7 +11,7 @@
 Vector algorithms (sum, min, sort, etc).
 """
 
-from .array import Array, _nan_parallel_dim, _nan_reduce_all, _parallel_dim, _reduce_all
+from .array import Array
 from .library import backend, safe_call, BINARYOP, c_bool_t, c_double_t, c_int_t, c_pointer, c_uint_t
 
 def _parallel_dim(a, dim, c_func):
@@ -81,6 +81,22 @@ def sum(a, dim=None, nan_val=None):
          Dimension along which the sum is required.
     nan_val: optional: scalar. default: None
          The value that replaces NaN in the array
+
+    Returns
+    -------
+    out: af.Array or scalar number
+         The sum of all elements in `a` along dimension `dim`.
+         If `dim` is `None`, sum of the entire Array is returned.
+    """
+    if nan_val is not None:
+        if dim is not None:
+            return _nan_parallel_dim(a, dim, backend.get().af_sum_nan, nan_val)
+        return _nan_reduce_all(a, backend.get().af_sum_nan_all, nan_val)
+
+    if dim is not None:
+        return _parallel_dim(a, dim, backend.get().af_sum)
+    return _reduce_all(a, backend.get().af_sum_all)
+
 
 
 
@@ -353,7 +369,17 @@ def count(a, dim=None):
          Multi dimensional arrayfire array.
     dim: optional: int. default: None
          Dimension along which the the non zero elements are to be counted.
-    return _reduce_all(a, backend.get().af_any_true_all)
+
+    Returns
+    -------
+    out: af.Array or scalar number
+         The count of non zero elements in `a` along `dim`.
+         If `dim` is `None`, the total number of non zero elements in `a`.
+    """
+    if dim is not None:
+        return _parallel_dim(a, dim, backend.get().af_count)
+    else:
+        return _reduce_all(a, backend.get().af_count_all)
 
 
 def countByKey(keys, vals, dim=-1):

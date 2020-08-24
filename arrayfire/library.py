@@ -11,6 +11,7 @@
 Module containing enums and other constants.
 """
 
+import platform
 import ctypes as ct
 import os
 import traceback

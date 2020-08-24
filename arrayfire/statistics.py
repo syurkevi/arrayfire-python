@@ -12,7 +12,7 @@ Statistical algorithms (mean, var, stdev, etc).
 """
 
 from .array import Array
-from .library import TOPK, c_double_t, c_int_t, c_pointer, backend, safe_call
+from .library import TOPK, VARIANCE, c_double_t, c_int_t, c_pointer, backend, safe_call
 
 
 def mean(a, weights=None, dim=None):

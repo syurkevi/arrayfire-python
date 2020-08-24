@@ -53,6 +53,35 @@ def _arith_unary_func(a, c_func):
     return out
 
 
+def cast(a, dtype):
+    """
+    Cast an array to a specified type
+    Parameters
+    ----------
+    a    : af.Array
+           Multi dimensional arrayfire array.
+    dtype: af.Dtype
+           Must be one of the following:
+               - Dtype.f32 for float
+               - Dtype.f64 for double
+               - Dtype.b8  for bool
+               - Dtype.u8  for unsigned char
+               - Dtype.s32 for signed 32 bit integer
+               - Dtype.u32 for unsigned 32 bit integer
+               - Dtype.s64 for signed 64 bit integer
+               - Dtype.u64 for unsigned 64 bit integer
+               - Dtype.c32 for 32 bit complex number
+               - Dtype.c64 for 64 bit complex number
+    Returns
+    --------
+    out  : af.Array
+           array containing the values from `a` after converting to `dtype`.
+    """
+    out=Array()
+    safe_call(backend.get().af_cast(c_pointer(out.arr), a.arr, dtype.value))
+    return out
+
+
 def minof(lhs, rhs):
     """
     Find the minimum value of two inputs at each location.
