@@ -49,7 +49,7 @@ The functionality provided by ArrayFire spans the following domains:
 """
 
 from .algorithm import (
-    accum, all_true, allTrueByKey, any_true, anyTrueByKey, count, countByKey, diff1, diff2, imax, imin, max, maxByKey, min, minByKey, product, productByKey, scan, scan_by_key, set_intersect,
+    accum, all_true, allTrueByKey, any_true, anyTrueByKey, count, countByKey, diff1, diff2, imax, imin, max, max_ragged, maxByKey, min, minByKey, product, productByKey, scan, scan_by_key, set_intersect,
     set_union, set_unique, sort, sort_by_key, sort_index, sum, sumByKey, where)
 from .arith import (
     abs, acos, acosh, arg, asin, asinh, atan, atan2, atanh, cast, cbrt, ceil, clamp, conjg, cos, cosh, cplx, erf, erfc, exp,
@@ -114,7 +114,7 @@ except ImportError:
 __all__ = [
     # algorithm
     "accum", "all_true", "allTrueByKey", "any_true", "anyTrueByKey", "count", "countByKey",
-    "diff1", "diff2", "imax", "imin", "max", "maxByKey", "min", "minByKey", "product",
+    "diff1", "diff2", "imax", "imin", "max", "max_ragged", "maxByKey", "min", "minByKey", "product",
     "productByKey", "scan", "scan_by_key", "set_intersect", "set_union", "set_unique",
     "sort", "sort_by_key", "sort_index", "sum", "sumByKey", "where",
     # arith

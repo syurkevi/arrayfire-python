@@ -227,7 +227,7 @@ def minByKey(keys, vals, dim=-1):
     """
     return _rbk_dim(keys, vals, dim, backend.get().af_min_by_key)
 
-def max(a, dim=None):
+def max(a, dim=None, ragged_lens=None):
     """
     Find the maximum value of all the elements along a specified dimension.
 
@@ -247,6 +247,31 @@ def max(a, dim=None):
     if dim is not None:
         return _parallel_dim(a, dim, backend.get().af_max)
     return _reduce_all(a, backend.get().af_max_all)
+
+def max_ragged(a, ragged_lens, dim=0):
+    """
+    Find the maximum value of all the elements along a specified dimension.
+
+    Parameters
+    ----------
+    a  : af.Array
+         Multi dimensional arrayfire array.
+    ragged_lens : af.Array
+         Array containing number of elements to use along dim when performing reduction
+    dim: int. default: 0
+         Dimension along which the maximum value is required.
+
+    Returns
+    -------
+    val, idx : (af.Array, af.Array)
+        val will contain the maximum ragged values in input a along dim according to ragged_lens
+        idx will contain the locations of the maximum ragged values in input a along dim according to ragged_lens
+    """
+
+    vals_out = Array()
+    idx_out = Array()
+    safe_call(backend.get().af_max_ragged(c_pointer(vals_out.arr), c_pointer(idx_out.arr), a.arr, ragged_lens.arr, c_int_t(dim)))
+    return (vals_out, idx_out)
 
 
 def maxByKey(keys, vals, dim=-1):

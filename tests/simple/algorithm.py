@@ -116,5 +116,12 @@ def simple_algorithm(verbose=False):
     display_func(af.set_intersect(cc, cc, is_unique=True))
     display_func(af.set_intersect(cc, cc, is_unique=False))
 
+    r = af.range(3, 3, dim=0)
+    lens = (af.range(1, 3, dim=1) + 1).as_type(af.Dtype.u32)
+    vals, ids = af.max_ragged(r, lens)
+    display_func(vals)
+    display_func(ids)
+
+
 
 _util.tests["algorithm"] = simple_algorithm
