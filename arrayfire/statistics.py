@@ -61,7 +61,7 @@ def mean(a, weights=None, dim=None):
     return real if imag == 0 else real + imag * 1j
 
 
-def var(a, isbiased=False, weights=None, dim=None):
+def var(a, bias=VARIANCE.DEFAULT, weights=None, dim=None):
     """
     Calculate variance along a given dimension.
 
@@ -70,9 +70,9 @@ def var(a, isbiased=False, weights=None, dim=None):
     a: af.Array
         The input array.
 
-    isbiased: optional: Boolean. default: False.
-        Boolean denoting population variance (false) or sample
-        variance (true).
+    bias: optional: af.VARIANCE. default: DEFAULT.
+        population variance(VARIANCE.POPULATION) or
+        sample variance(VARIANCE.SAMPLE).
 
     weights: optional: af.Array. default: None.
         Array to calculate for the weighted mean. Must match size of
@@ -91,7 +91,7 @@ def var(a, isbiased=False, weights=None, dim=None):
         out = Array()
 
         if weights is None:
-            safe_call(backend.get().af_var(c_pointer(out.arr), a.arr, isbiased, c_int_t(dim)))
+            safe_call(backend.get().af_var_v2(c_pointer(out.arr), a.arr, bias.value, c_int_t(dim)))
         else:
             safe_call(backend.get().af_var_weighted(c_pointer(out.arr), a.arr, weights.arr, c_int_t(dim)))
 
@@ -101,7 +101,7 @@ def var(a, isbiased=False, weights=None, dim=None):
     imag = c_double_t(0)
 
     if weights is None:
-        safe_call(backend.get().af_var_all(c_pointer(real), c_pointer(imag), a.arr, isbiased))
+        safe_call(backend.get().af_var_all_v2(c_pointer(real), c_pointer(imag), a.arr, bias.value))
     else:
         safe_call(backend.get().af_var_all_weighted(c_pointer(real), c_pointer(imag), a.arr, weights.arr))
 
@@ -153,7 +153,7 @@ def meanvar(a, weights=None, bias=VARIANCE.DEFAULT, dim=-1):
     return mean_out, var_out
 
 
-def stdev(a, dim=None):
+def stdev(a, bias=VARIANCE.DEFAULT, dim=None):
     """
     Calculate standard deviation along a given dimension.
 
@@ -161,6 +161,10 @@ def stdev(a, dim=None):
     ----------
     a: af.Array
         The input array.
+
+    bias: optional: af.VARIANCE. default: DEFAULT.
+        population variance(VARIANCE.POPULATION) or
+        sample variance(VARIANCE.SAMPLE).
 
     dim: optional: int. default: None.
         The dimension for which to obtain the standard deviation from
@@ -174,18 +178,18 @@ def stdev(a, dim=None):
     """
     if dim is not None:
         out = Array()
-        safe_call(backend.get().af_stdev(c_pointer(out.arr), a.arr, c_int_t(dim)))
+        safe_call(backend.get().af_stdev_v2(c_pointer(out.arr), a.arr, bias.value, c_int_t(dim)))
         return out
 
     real = c_double_t(0)
     imag = c_double_t(0)
-    safe_call(backend.get().af_stdev_all(c_pointer(real), c_pointer(imag), a.arr))
+    safe_call(backend.get().af_stdev_all(c_pointer(real), c_pointer(imag), a.arr, bias.value))
     real = real.value
     imag = imag.value
     return real if imag == 0 else real + imag * 1j
 
 
-def cov(a, isbiased=False, dim=None):
+def cov(a, bias=VARIANCE.DEFAULT, dim=None):
     """
     Calculate covariance along a given dimension.
 
@@ -194,8 +198,9 @@ def cov(a, isbiased=False, dim=None):
     a: af.Array
         The input array.
 
-    isbiased: optional: Boolean. default: False.
-        Boolean denoting whether biased estimate should be taken.
+    bias: optional: af.VARIANCE. default: DEFAULT.
+        population variance(VARIANCE.POPULATION) or
+        sample variance(VARIANCE.SAMPLE).
 
     dim: optional: int. default: None.
         The dimension for which to obtain the covariance from input data.
@@ -208,12 +213,12 @@ def cov(a, isbiased=False, dim=None):
     """
     if dim is not None:
         out = Array()
-        safe_call(backend.get().af_cov(c_pointer(out.arr), a.arr, isbiased, c_int_t(dim)))
+        safe_call(backend.get().af_cov_v2(c_pointer(out.arr), a.arr, bias.value, c_int_t(dim)))
         return out
 
     real = c_double_t(0)
     imag = c_double_t(0)
-    safe_call(backend.get().af_cov_all(c_pointer(real), c_pointer(imag), a.arr, isbiased))
+    safe_call(backend.get().af_cov_all_v2(c_pointer(real), c_pointer(imag), a.arr, bias.value))
     real = real.value
     imag = imag.value
     return real if imag == 0 else real + imag * 1j
